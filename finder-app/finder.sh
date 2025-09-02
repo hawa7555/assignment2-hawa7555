@@ -10,7 +10,9 @@ else
 		exit 1
 	else
 		number_of_lines=$(grep -r "$searchstr" "$filesdir" | wc -l)
-		number_of_files=$(grep -r -l "$searchstr" "$filesdir" | wc -l)
+		#number_of_match_files=$(grep -r -l "$searchstr" "$filesdir" | wc -l)
+    number_of_files=$(find -L "$filesdir" -type f | wc -l)
+
 		echo "The number of files are $number_of_files and the number of matching lines are $number_of_lines"
 	fi
 fi
