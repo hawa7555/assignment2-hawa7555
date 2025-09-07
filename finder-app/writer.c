@@ -9,13 +9,12 @@
 
 int main(int argc, char **argv)
 {
-
-    openlog(NULL, 0, LOG_USER);
+    openlog(NULL, 0, LOG_USER);               //open log with LOG_USER facility
 
     if(argc != 3)
     {
         syslog(LOG_ERR, "Invalid number of arguments: %d \n", argc);
-        //perror(NULL);
+        //perror(NULL);                                             //no error, will print success
         exit(1);
     }
 
@@ -23,9 +22,11 @@ int main(int argc, char **argv)
     char *writestr =  argv[2];
 
     int fd;
+    
+    //open/create file
+    fd = open(writefile, O_RDWR| O_CREAT | O_TRUNC, 0600);         //octal, not decimal
 
-    fd = open(writefile, O_RDWR| O_CREAT | O_TRUNC, 0600);
-
+    //Error creating file
     if(fd == -1)
     {
         syslog(LOG_ERR, "Error creating file %s \n", writefile);
@@ -33,21 +34,34 @@ int main(int argc, char **argv)
         exit(1);
     }
 
+    //Writing to file
     ssize_t nr;
-    nr = write(fd, writestr, strlen(writestr));
+    size_t str_length = strlen(writestr);
+    nr = write(fd, writestr, str_length);    
 
     syslog(LOG_DEBUG, "Writing %s to %s", writestr, writefile);
 
+    //Error writing to file
     if(nr == -1)
     {
         syslog(LOG_ERR, "Error writing to file %s\n", writefile);
         perror(NULL);
         close(fd);
+        closelog();
         exit(1);
+    }
+
+    //partial write error
+    else if(nr != str_length)
+    {
+       syslog(LOG_ERR, "Partial Write error to file %s\n", writefile);
+       perror(NULL);
+       close(fd);
+       closelog();
+       exit(1); 
     }
 
     close(fd);
     closelog();
-
     return 0;
 }
